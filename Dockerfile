@@ -34,6 +34,11 @@ RUN sudo apt-get update
 RUN sudo apt-get install -y default-jdk
 RUN sudo apt-get install -y elasticsearch logstash kibana
 
+# CUDA/CNN
+RUN sudo apt-get install -y nvidia-cuda-toolkit
+
+RUN pip3 install matplotlib elasticsearch python-logstash jupyter seaborn jupyter-tensorboard
+
 COPY . /home/ubuntu/catkin_ws/src
 
 RUN /bin/bash -c "source /opt/ros/melodic/setup.bash \
@@ -43,8 +48,6 @@ RUN /bin/bash -c "source /opt/ros/melodic/setup.bash \
     && source /home/ubuntu/catkin_ws/devel/setup.bash"
 
 RUN cd /home/ubuntu/catkin_ws && sudo rosdep fix-permissions && rosdep update && rosdep install --from-paths src --ignore-src --rosdistro=melodic -y
-
-RUN pip3 install matplotlib elasticsearch python-logstash
 
 RUN /bin/bash -c "source /opt/ros/melodic/setup.bash \
     && source /home/ubuntu/catkin_ws/devel/setup.bash \
@@ -56,6 +59,8 @@ RUN /bin/bash -c "source /opt/ros/melodic/setup.bash \
     && pip3 install . \
     && cd .. \
     && source install/local_setup.sh \
-    && chmod +x /home/ubuntu/catkin_ws/src/simulation_ws/src/mars/launch/mars_full_sim.launch \
-    && chmod +x /home/ubuntu/catkin_ws/src/run.sh"
-EXPOSE 9000 5601
+    && chmod +x /home/ubuntu/catkin_ws/src/run.sh \
+    && chmod +x /home/ubuntu/catkin_ws/src/setup.sh \
+    && chmod +x /home/ubuntu/catkin_ws/src/minio.sh \
+    && chmod +x /home/ubuntu/catkin_ws/src/elk.sh \
+    && chmod +x /home/ubuntu/catkin_ws/src/jupyter.sh"

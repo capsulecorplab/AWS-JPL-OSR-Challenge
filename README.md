@@ -225,19 +225,25 @@ git clone https://github.com/joebarbere/AWS-JPL-OSR-Challenge.git
 cd AWS-JPL-OSR-Challenge
 git checkout docker
 docker build -t awsjpl .
-docker run -p 5900:5900 -p 9000:9000 -p 6080:80 -p 5601:5601 -v /home/yourusername/GitHub/AWS-JPL-OSR-Challenge/volumes/minio:/data --gpus all awsjpl
+docker run -p 5900:5900 -p 9000:9000 -p 6080:80 -p 5601:5601 -p 8888:8888 -v /home/yourusername/GitHub/AWS-JPL-OSR-Challenge/volumes/minio:/data --gpus all awsjpl
 firefox http://localhost:6080
 ```
-Open a terminal in the VNC tab
+Open a terminal in the VNC tab, and run the following commands (jupyter is optional)
 
 ```
 cd /home/ubuntu/catkin_ws/src/
-./run
+./minio.sh
+./elk.sh
+./jupyter.sh
+source setup.sh
+./run.sh
 ```
 
 * vnc - http://localhost:6080
 * minio (minio/miniokey) - http://localhost:9000
 * kibana - http://localhost:5601
+* jupyter - http://localhost:8888
+
 
 
 
