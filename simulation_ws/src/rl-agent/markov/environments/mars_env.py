@@ -46,8 +46,9 @@ IMG_QUEUE_BUF_SIZE = 1
 MAX_STEPS = 2000
 
 # Destination Point
-CHECKPOINT_X = 44.25
+CHECKPOINT_X = -44.25
 CHECKPOINT_Y = -4
+CHECKPOINT_PADDING = .5
 
 # Initial position of the robot
 INITIAL_POS_X = -0.170505086911
@@ -80,7 +81,7 @@ class MarsEnv(gym.Env):
         #self.orientation = None
         self.aws_region = os.environ.get("AWS_REGION", "us-east-1")             # Region for CloudWatch Metrics
         self.reward_in_episode = 0                                              # Global episodic reward variable
-        self.steps = 0                                                          # Global episodic step counter
+        self.steps = 1                                                          # Global episodic step counter
         self.collision_threshold = sys.maxsize                                  # current collision distance
         self.last_collision_threshold = sys.maxsize                             # previous collision distance
         self.collision = False                                                  # Episodic collision detector
@@ -91,7 +92,7 @@ class MarsEnv(gym.Env):
         self.steering = 0
         self.throttle = 0
         self.power_supply_range = MAX_STEPS                                     # Kill switch (power supply)
-        
+        self.episode = -1 # set to -1 because there is a throw-away step the very first run
 
         # Imu Sensor readings
         self.max_lin_accel_x = 0
@@ -252,7 +253,8 @@ class MarsEnv(gym.Env):
 
         self.distance_travelled = 0
         self.current_distance_to_checkpoint = INITIAL_DISTANCE_TO_CHECKPOINT
-        self.steps = 0
+        self.steps = 1
+        if self.episode == 20: self.episode = 0
         self.reward_in_episode = 0
         self.collision = False
         self.closer_to_checkpoint = False
@@ -329,9 +331,23 @@ class MarsEnv(gym.Env):
         else:
             avg_imu = 0
     
+        if self.steps == 1: self.episode+=1
+        
+        print('Step:%s' % self.steps,
+              'Episode:%s' % self.episode,
+              'Steering:%f' % action[0],
+              'R:%.2f' % reward,                                # Reward
+              'DTCP:%f' % self.current_distance_to_checkpoint,  # Distance to Check Point
+              'DT:%f' % self.distance_travelled,                # Distance Travelled
+              'CT:%.2f' % self.collision_threshold,             # Collision Threshold
+              'CTCP:%f' % self.closer_to_checkpoint,            # Is closer to checkpoint
+              'PSR:%f' % self.power_supply_range,              # Steps remaining in Episode
+              'IMU:%f' % avg_imu)
+
         try:
             extra = {
                 'Step': self.steps,
+                'Episode': self.episode,
                 'Steering': action[0],
                 'R': reward,
                 'DTCP': self.current_distance_to_checkpoint,
@@ -351,7 +367,10 @@ class MarsEnv(gym.Env):
         self.last_position_x = self.x
         self.last_position_y = self.y
 
-
+    def at_destination(self):
+        reached_dest_x = (CHECKPOINT_X - CHECKPOINT_PADDING) <= self.x <= (CHECKPOINT_X + CHECKPOINT_PADDING)
+        reached_dest_y = (CHECKPOINT_Y - CHECKPOINT_PADDING) <= self.y <= (CHECKPOINT_Y + CHECKPOINT_PADDING)
+        return reached_dest_x and reached_dest_y
 
     '''
     EDIT - but do not change the function signature. 
@@ -417,11 +436,11 @@ class MarsEnv(gym.Env):
             
             # Has the rover reached the max steps
             if self.power_supply_range < 1:
-                print("Rover's power supply has been drained (MAX Steps reached")
+                print("Rover's power supply has been drained (MAX Steps reached)")
                 return 0, True # No reward
             
             # Has the Rover reached the destination
-            if self.last_position_x >= CHECKPOINT_X and self.last_position_y >= CHECKPOINT_Y:
+            if self.at_destination():
                 print("Congratulations! The rover has reached the checkpoint!")
                 multiplier = FINISHED_REWARD
                 reward = (base_reward * multiplier) / self.steps # <-- incentivize to reach checkpoint in fewest steps
@@ -465,8 +484,7 @@ class MarsEnv(gym.Env):
                     print("Congratulations! The rover has reached waypoint 3!")
                     multiplier = 1 
                     reward = (WAYPOINT_3_REWARD * multiplier)/ self.steps # <-- incentivize to reach way-point in fewest steps
-                    return reward, False
-                    
+                    return reward, False      
             
             # To reach this point in the function the Rover has either not yet reached the way-points OR has already gotten the one time reward for reaching the waypoint(s)
                
