@@ -236,6 +236,14 @@ docker run  -p 5900:5900 \
             awsjpl
 firefox http://localhost:6080
 ```
+
+If you are trying to get GPU acceleration to work you will need to replace awsjpl with
+
+```
+--gpus all \
+awsjpl
+```
+
 Open a terminal in the VNC tab, and run the following commands (jupyter is optional)
 
 ```

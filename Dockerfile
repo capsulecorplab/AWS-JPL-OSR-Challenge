@@ -39,3 +39,26 @@ RUN sudo apt-get install -y elasticsearch logstash kibana
 
 # install additional useful python packages
 RUN pip3 install elasticsearch python-logstash jupyter seaborn jupyter-tensorboard
+
+# here are some examples of how to install cuda
+# the one you should use is dependent on the Nvidia driver version you have installed
+# hopefully one will work for you, if not just CPU train like me
+# i'm using nvidia driver v440.44, which is too recent I think
+
+# Option 1
+# RUN sudo apt install -y nvidia-cuda-toolkit
+
+# Option 2 - you must manually run the installer in the container
+# 	cd /home/ubuntu
+# 	sudo sh cuda_10.2.89_440.33.01_linux.run
+# RUN wget http://developer.download.nvidia.com/compute/cuda/10.2/Prod/local_installers/cuda_10.2.89_440.33.01_linux.run
+# RUN sudo chmod +x cuda_10.2.89_440.33.01_linux.run
+# RUN sudo mv cuda_10.2.89_440.33.01_linux.run /home/ubuntu/
+
+# Option 3
+# RUN wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/cuda-ubuntu1804.pin
+# RUN sudo mv cuda-ubuntu1804.pin /etc/apt/preferences.d/cuda-repository-pin-600
+# RUN sudo apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/7fa2af80.pub
+# RUN sudo add-apt-repository "deb http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/ /"
+# RUN sudo apt-get update
+# RUN sudo apt-get install -y cuda-toolkit-10-0
